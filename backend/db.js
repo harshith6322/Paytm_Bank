@@ -28,10 +28,20 @@ const Bankschema = new mongoose.Schema({
   Balance: { type: Number, required: true },
 });
 
+const Historyschema = new mongoose.Schema({
+  // From: { type: String, required: true },
+  // To: { type: String, required: true },
+  Date: { type: Date, default: Date.now },
+  Amount: { type: String, required: true },
+  FromID: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  ToID: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+});
 const User = mongoose.model("User", Userschema);
 const Bank = mongoose.model("Bank", Bankschema);
+const History = mongoose.model("History", Historyschema);
 
 module.exports = {
   User,
   Bank,
+  History,
 };

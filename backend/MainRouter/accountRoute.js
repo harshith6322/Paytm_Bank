@@ -3,7 +3,7 @@ const express = require("express");
 // const jwt = require("jsonwebtoken");
 const { authMiddleware } = require("../middlewareAuth");
 const mongoose = require("mongoose");
-const { Bank } = require("../db");
+const { Bank, History } = require("../db");
 const router = express.Router();
 router.use(express.json());
 
@@ -66,10 +66,11 @@ router.post("/transfer", authMiddleware, async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   const { amount, to } = req.body;
+  const user = req.user;
 
   try {
     // Fetch the accounts within the transaction
-    const account = await Bank.findOne({ userID: req.user.user_id }).session(
+    const account = await Bank.findOne({ userID: user.user_id }).session(
       session
     );
     console.log(account);
@@ -89,7 +90,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
       });
     }
 
-    if (req.user.user_id === to) {
+    if (user.user_id === to) {
       await session.abortTransaction();
       return res.status(400).json({
         message: "cannot send money to same account",
@@ -98,7 +99,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
 
     // Perform the transfer
     await Bank.updateOne(
-      { userID: req.user.user_id }, // Corrected from req.user._id
+      { userID: user.user_id }, // Corrected from user._id
       { $inc: { Balance: -amount } }
     ).session(session);
 
@@ -106,6 +107,18 @@ router.post("/transfer", authMiddleware, async (req, res) => {
       { userID: to }, // Corrected from userId to userID
       { $inc: { Balance: amount } }
     ).session(session);
+
+    //History
+    const newHistory = await History.create(
+      [
+        {
+          Amount: amount,
+          FromID: user.user_id,
+          ToID: to,
+        },
+      ],
+      { session }
+    );
 
     // Commit the transaction
     await session.commitTransaction();
@@ -120,6 +133,27 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     });
   } finally {
     session.endSession();
+  }
+});
+
+router.get("/history", authMiddleware, async (req, res) => {
+  try {
+    const user = req.user;
+    const allHistory = await History.find({
+      $or: [{ FromID: user.user_id }, { ToID: user.user_id }],
+    });
+    // console.log(allHistory);
+    // const historyWithStatus = allHistory.map((history) => {
+    //   const status = user.user_id === history.FromID ? "debited" : "credited";
+    //   return { ...history._doc, status }; // _doc is used to get the raw object from the Mongoose document
+    // });
+
+    res.status(200).json(allHistory);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to retrieve history",
+      error: err.message,
+    });
   }
 });
 
