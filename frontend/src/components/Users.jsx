@@ -10,16 +10,21 @@ function Users() {
   const [users, setUsers] = useState([]); // This should be an array
   const [searchTerm, setSearchTerm] = useState(""); // Separate state for search term
   const authToken = localStorage.getItem("token");
+  const nav = useNavigate();
 
   useEffect(() => {
-    const res = axios
-      .get(`http://localhost:5050/api/v1/user/bulk?filter=${searchTerm}`, {
-        headers: {
-          Authorization: authToken,
-        },
-      })
-      .then((res) => setUsers(res.data.user));
-  }, [searchTerm, authToken]);
+    if (searchTerm !== "") {
+      const res = axios
+        .get(`http://localhost:5050/api/v1/user/bulk?filter=${searchTerm}`, {
+          headers: {
+            Authorization: authToken,
+          },
+        })
+        .then((res) => {
+          setUsers(res.data.user);
+        });
+    }
+  }, [searchTerm, authToken, nav]);
 
   return (
     <>
@@ -35,9 +40,7 @@ function Users() {
         />
       </div>
       <div>
-        {users.map((user) => (
-          <User user={user} key={user._id} />
-        ))}
+        {users ? users.map((user) => <User user={user} key={user._id} />) : ""}
       </div>
     </>
   );

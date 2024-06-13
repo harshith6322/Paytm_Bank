@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Bottomwaring from "../components/Bottomwaring";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
@@ -11,7 +11,23 @@ import { useNavigate } from "react-router-dom";
 function Singin() {
   const [username, setusername] = useState("");
   const [password, setpassword] = useState("");
+  const [auth, setauth] = useState(false);
   const nav = useNavigate();
+  const authtoken = localStorage.getItem("token");
+
+  useEffect(() => {
+    const res = axios
+      .get("http://localhost:5050/api/v1/user/data", {
+        headers: {
+          Authorization: authtoken,
+        },
+      })
+      .then((res) => {
+        if (res.status === 200) return setauth(true);
+      });
+  }, [authtoken]);
+
+  if (auth) return nav("/dashboad");
   return (
     <div className=" bg-slate-500 w-screen h-screen flex flex-col justify-center items-center">
       <form>

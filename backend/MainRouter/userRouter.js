@@ -136,6 +136,7 @@ router.put("/update", authMiddleware, async (req, res) => {
 });
 
 router.get("/bulk", authMiddleware, async (req, res) => {
+  const user = req.user;
   const filter = req.query.filter || "";
 
   const users = await User.find({
@@ -152,6 +153,7 @@ router.get("/bulk", authMiddleware, async (req, res) => {
       },
     ],
   });
+
   if (users.length === 0) return res.json({ err: true, msg: "no user found" });
 
   res.json({

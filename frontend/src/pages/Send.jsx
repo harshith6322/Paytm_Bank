@@ -4,7 +4,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 /* eslint-disable react/no-unescaped-entities */
 function Send() {
@@ -12,8 +12,8 @@ function Send() {
   const [serch] = useSearchParams();
   const id = serch.get("id");
   const name = serch.get("name");
+
   const authToken = localStorage.getItem("token");
-  const nav = useNavigate();
 
   return (
     <div className="flex justify-center h-screen bg-gray-100">
@@ -70,7 +70,6 @@ function Send() {
                     .then((res) => {
                       if (res.status === 200) {
                         alert("money debited");
-                        nav("/dashboad");
                       } else {
                         alert("server down");
                       }
