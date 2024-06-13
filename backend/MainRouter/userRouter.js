@@ -16,13 +16,13 @@ const singupzod = zod.object({
 
 router.post("/singup", async (req, res) => {
   const body = req.body;
-  const { success } = singupzod.safeParse(body);
+  const { success, error } = singupzod.safeParse(body);
 
   if (!success)
     return res.status(400).json({
       status: 400,
       error: "Bad Request",
-      message: "Invalid input data",
+      message: error,
     });
 
   const findonedb = await User.findOne({ username: body.username });
@@ -79,6 +79,19 @@ router.post("/singin", async (req, res) => {
   });
 
   res.json({ err: false, msg: "LOGIN SUCCSSFULL", token: token });
+});
+
+router.get("/data", authMiddleware, async (req, res) => {
+  const user = req.user;
+
+  const usedb = await User.findOne({ _id: user.user_id });
+  console.log(usedb);
+  if (!usedb) return res.json({ err: true, msg: "cannot find user" });
+  const userdata = {
+    firstName: usedb.firstname,
+    lastName: usedb.lastname,
+  };
+  res.json({ userdata });
 });
 
 //zod update
